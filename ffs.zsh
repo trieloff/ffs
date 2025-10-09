@@ -12,15 +12,15 @@ ffs() {
 
     # First, check if this was run on the same line (semicolon-separated)
     # Get the current command line from history
-    local current_line=$(fc -ln -1)
+    local current_line=$(fc -ln -1 2>/dev/null)
 
     # Check if current line contains "; ffs" or ";ffs"
-    if [[ "$current_line" =~ ^(.+)[[:space:]]*;[[:space:]]*ffs[[:space:]]*$ ]]; then
+    if [[ "$current_line" =~ '^(.+)[[:space:]]*;[[:space:]]*ffs[[:space:]]*$' ]]; then
         # Extract everything before "; ffs"
         commands_to_sudo="${match[1]}"
     else
         # Not on same line, get the previous command from history
-        commands_to_sudo=$(fc -ln -2 | head -1)
+        commands_to_sudo=$(fc -ln -2 2>/dev/null | head -1)
     fi
 
     # Trim leading/trailing whitespace
@@ -28,7 +28,7 @@ ffs() {
     commands_to_sudo="${commands_to_sudo%"${commands_to_sudo##*[![:space:]]}"}"
 
     # Check if we got a valid command
-    if [[ -z "$commands_to_sudo" || "$commands_to_sudo" == "ffs" ]]; then
+    if [[ -z "$commands_to_sudo" || "$commands_to_sudo" == "ffs" || "$commands_to_sudo" =~ ^[[:space:]]*sudo[[:space:]]+sh[[:space:]]+-c ]]; then
         echo "Error: No valid previous command found"
         return 1
     fi
