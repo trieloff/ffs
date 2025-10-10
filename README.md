@@ -31,6 +31,9 @@ A utility that re-runs your previous command with `sudo`. Available for both **Z
 2. Add to your `~/.config/elvish/rc.elv`:
    ```elvish
    use ffs
+
+   # Optional: Make ffs callable without the namespace prefix
+   fn ffs { ffs:ffs }
    ```
 3. Restart your Elvish shell
 
@@ -54,6 +57,8 @@ $ ffs
 **Elvish:**
 ```elvish
 $ ffs:ffs
+# Or just 'ffs' if you added the wrapper function to rc.elv
+$ ffs
 ```
 
 ### Same-line Usage
@@ -68,6 +73,8 @@ $ rm /etc/somefile; ffs
 **Elvish:**
 ```elvish
 $ rm /etc/somefile; ffs:ffs
+# Or with the wrapper function:
+$ rm /etc/somefile; ffs
 ```
 
 ## How It Works
