@@ -23,19 +23,31 @@ A utility that re-runs your previous command with `sudo`. Available for both **Z
 
 ### Elvish
 
-1. Copy `ffs.elv` to your Elvish library directory:
-   ```bash
-   mkdir -p ~/.config/elvish/lib
-   cp ffs.elv ~/.config/elvish/lib/
+1. Install using epm (Elvish Package Manager):
+   ```elvish
+   use epm
+   epm:install github.com/trieloff/ffs
    ```
+
 2. Add to your `~/.config/elvish/rc.elv`:
    ```elvish
-   use ffs
+   use github.com/trieloff/ffs
 
    # Optional: Make ffs callable without the namespace prefix
-   fn ffs { ffs:ffs }
+   fn ffs { github.com/trieloff/ffs:ffs }
    ```
+
 3. Restart your Elvish shell
+
+**Alternative: Manual installation**
+
+If you prefer not to use epm, you can manually copy the module:
+```bash
+mkdir -p ~/.config/elvish/lib
+curl -o ~/.config/elvish/lib/ffs.elv https://raw.githubusercontent.com/trieloff/ffs/main/ffs.elv
+```
+
+Then use `use ffs` in your `rc.elv` instead of the GitHub path.
 
 ## Usage
 
