@@ -2,9 +2,13 @@
 
 **Friendly Following Sudo** (or, let's be honest, the more colorful interpretation)
 
-`ffs` is a zsh shell function that reruns the previous command with sudo privileges. Because we've all been there: you run a command, it fails with a permission error, and you just want to say... well, you know.
+`ffs` is a shell function that reruns the previous command with sudo privileges. Because we've all been there: you run a command, it fails with a permission error, and you just want to say... well, you know.
+
+Available for both **Zsh** and **Elvish** shells.
 
 ## Installation
+
+### Zsh
 
 1. Clone or download this repository
 2. Source `ffs.zsh` in your `.zshrc`:
@@ -19,12 +23,41 @@ echo "source /path/to/ffs.zsh" >> ~/.zshrc
 source ~/.zshrc
 ```
 
+### Elvish
+
+1. Install using epm (Elvish Package Manager):
+   ```elvish
+   use epm
+   epm:install github.com/trieloff/ffs
+   ```
+
+2. Add to your `~/.config/elvish/rc.elv`:
+   ```elvish
+   use github.com/trieloff/ffs
+
+   # Optional: Make ffs callable without the namespace prefix
+   fn ffs { github.com/trieloff/ffs:ffs }
+   ```
+
+3. Restart your Elvish shell
+
+**Alternative: Manual installation**
+
+If you prefer not to use epm, you can manually copy the module:
+```bash
+mkdir -p ~/.config/elvish/lib
+curl -o ~/.config/elvish/lib/ffs.elv https://raw.githubusercontent.com/trieloff/ffs/main/ffs.elv
+```
+
+Then use `use ffs` in your `rc.elv` instead of the GitHub path.
+
 ## Usage Examples
 
 ### Basic Usage
 
 The most common scenario - you forgot to use sudo:
 
+**Zsh:**
 ```bash
 $ rm /etc/important-system-file
 rm: cannot remove '/etc/important-system-file': Permission denied
@@ -33,14 +66,35 @@ $ ffs
 $ sudo sh -c 'rm /etc/important-system-file'
 ```
 
+**Elvish:**
+```elvish
+$ rm /etc/somefile
+Exception: failed to open file /etc/somefile: open /etc/somefile: permission denied
+
+$ ffs
+$ sudo sh -c 'rm /etc/somefile'
+```
+
 ### Same-Line Usage
 
 Save a keystroke by using `ffs` on the same line:
 
+**Zsh:**
 ```bash
 $ apt update; ffs
 $ sudo sh -c 'apt update'
 ```
+
+**Elvish:**
+```elvish
+$ rm /etc/somefile; ffs
+
+ffs: Re-running with sudo...
+$ sudo sh -c 'rm /etc/somefile'
+✓ Command completed successfully
+```
+
+**Note for Elvish users:** The same-line syntax only triggers on **failed commands**. If your command succeeds, `ffs` does nothing. You'll see the original exception message followed by a success indicator when the sudo retry works.
 
 ### Command Chains
 
@@ -65,6 +119,8 @@ Error: No valid previous command found
 
 ## How It Works
 
+### Zsh Version
+
 `ffs` leverages zsh's `fc` (fix command) built-in to access your shell history:
 
 1. **Same-line detection**: First checks if `ffs` was invoked on the same line as another command (e.g., `command; ffs`) by examining the current history entry
@@ -74,9 +130,45 @@ Error: No valid previous command found
 
 The use of `sudo sh -c` ensures that complex commands with pipes, redirections, and other shell operators work correctly under sudo.
 
+### Elvish Version
+
+The Elvish implementation uses a dual approach to handle its exception-based execution model:
+
+1. **Standalone usage** (`ffs` on its own line):
+   - Uses `edit:command-history` API to retrieve the previous command
+   - Re-executes it with `sudo sh -c`
+
+2. **Same-line usage** (`command; ffs`):
+   - Installs an `$edit:after-command` hook that monitors command execution
+   - When a command fails and ends with `;ffs`, the hook intercepts it
+   - Extracts the command before `;ffs` and re-runs it with sudo
+   - Note: You'll see the original exception (Elvish displays this before the hook runs), followed by the sudo retry and a success/failure indicator
+
+## Testing
+
+### Zsh
+
+```bash
+./test_ffs.sh
+```
+
+### Elvish
+
+```bash
+./verify_ffs.sh
+```
+
+For manual testing with Elvish, see `manual_test_ffs.md` or run the demo:
+```bash
+./demo_ffs.sh
+```
+
 ## Requirements
 
-- zsh shell
+- **Zsh**: Zsh shell (typically pre-installed on macOS and most Linux distributions)
+- **Elvish**: Elvish shell 0.20.1 or later
+  - Install on Ubuntu/Debian: `sudo apt install elvish`
+  - See [elvish.sh](https://elv.sh) for other platforms
 - sudo privileges on your system
 
 ## License
@@ -92,7 +184,7 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 ### Guidelines
 
 - Follow the existing code style
-- Test your changes with the included `test_ffs.sh` script
+- Test your changes with the included test scripts (`test_ffs.sh` for Zsh, `verify_ffs.sh` for Elvish)
 - Keep the function simple and focused on its core purpose
 - Update documentation for any new features
 
