@@ -1,0 +1,32 @@
+name: Test ffs
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install zsh
+      run: sudo apt-get update && sudo apt-get install -y zsh
+
+    - name: Make test script executable
+      run: chmod +x test_ffs.sh
+
+    - name: Run tests
+      run: zsh test_ffs.sh
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: /tmp/test_ffs_*.txt
+        if-no-files-found: ignore
