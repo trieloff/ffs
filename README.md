@@ -72,17 +72,30 @@ $ rm /etc/somefile; ffs
 
 **Elvish:**
 ```elvish
-$ rm /etc/somefile; ffs:ffs
-# Or with the wrapper function:
 $ rm /etc/somefile; ffs
 ```
 
+**Note for Elvish users:** The same-line syntax only triggers on **failed commands**. If your command succeeds, `ffs` does nothing. You'll see the original exception message followed by a success indicator when the sudo retry works.
+
 ## How It Works
 
-- **Zsh version**: Uses the `fc` command to access shell history
-- **Elvish version**: Uses the `edit:command-history` API to retrieve previous commands
-- Both versions detect if `ffs` was called on the same line and extract the correct command
-- The previous command is then executed with `sudo sh -c`
+### Zsh Version
+- Uses the `fc` command to access shell history
+- Detects if `ffs` was called on the same line and extracts the correct command
+- Executes the previous command with `sudo sh -c`
+
+### Elvish Version
+The Elvish implementation uses a dual approach to handle its exception-based execution model:
+
+1. **Standalone usage** (`ffs` on its own line):
+   - Uses `edit:command-history` API to retrieve the previous command
+   - Re-executes it with `sudo sh -c`
+
+2. **Same-line usage** (`command; ffs`):
+   - Installs an `$edit:after-command` hook that monitors command execution
+   - When a command fails and ends with `;ffs`, the hook intercepts it
+   - Extracts the command before `;ffs` and re-runs it with sudo
+   - Note: You'll see the original exception (Elvish displays this before the hook runs), followed by the sudo retry and a success/failure indicator
 
 ## Testing
 
